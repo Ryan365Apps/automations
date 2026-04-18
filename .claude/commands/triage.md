@@ -8,5 +8,5 @@ Triage my Linear workload.
 2. Group by priority (Urgent → High → Medium → Low → No priority) and note which cycle each is in.
 3. Flag issues with a due date today or earlier as **needs attention**.
 4. Flag issues that haven't been updated in 14+ days as **stale — decide: close, defer, or act**.
-5. Recommend the top 3 picks for today based on priority × urgency × unblockedness.
+5. Recommend the top 3 picks for today based on priority × urgency × lack of blockers.
 6. Do **not** modify any issue (comments, status, assignee) without explicit confirmation.
