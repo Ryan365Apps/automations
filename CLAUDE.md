@@ -28,6 +28,11 @@ Central hub for managing work: capture inputs, produce outputs, run agents.
 
 ## Commands
 - `/triage` — open Linear work: what needs attention today.
+- `/pulse [hours]` — Linear activity across all projects in the last N hours (default 24).
+- `/daily` — morning briefing (pulse + triage + unfinished sessions). Used by the scheduled workflow.
 - `/inbox` — process and file everything in `inbox/`.
 - `/brief <topic>` — build a context pack from Linear + Confluence + GitHub.
 - `/sessions` — digest recent Claude conversations across projects.
+
+## Scheduled runs
+- `.github/workflows/daily-briefing.yml` runs `/daily` on a cron (07:00 UTC) and commits the output to `notes/daily/YYYY-MM-DD.md`. Requires `ANTHROPIC_API_KEY` repo secret, plus a Linear MCP wired into the action (see the TODO in the workflow).

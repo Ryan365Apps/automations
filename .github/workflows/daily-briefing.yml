@@ -1,0 +1,66 @@
+name: Daily briefing
+
+on:
+  schedule:
+    # 07:00 UTC daily. Adjust to your timezone as needed.
+    - cron: '0 7 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-briefing-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run /daily via Claude Code
+        # NOTE: `@beta` is a floating tag. Before enabling the cron in anger,
+        # pin this to a reviewed commit SHA (or a versioned tag) to avoid
+        # upstream changes silently breaking or shifting behaviour.
+        uses: anthropics/claude-code-base-action@beta
+        with:
+          prompt: /daily
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # TODO: wire Linear MCP before this cron produces useful output.
+          # Options:
+          #   (a) Linear's hosted MCP at https://mcp.linear.app/mcp — uses OAuth, so
+          #       you'd need a persisted refresh token available as a secret.
+          #   (b) A stdio MCP backed by a LINEAR_API_KEY secret (community packages exist;
+          #       pick one you trust and pin the version).
+          #   (c) A plain Node/Python script in scripts/ that calls Linear's GraphQL API,
+          #       writes JSON to a temp file, then have /daily read that file.
+          # Until this is configured, the workflow will produce a briefing that says
+          # "Linear MCP unavailable" in the /pulse and /triage sections.
+          #
+          # mcp_config: |
+          #   {
+          #     "mcpServers": {
+          #       "linear": { ... }
+          #     }
+          #   }
+
+      - name: Verify briefing was produced
+        run: |
+          brief="notes/daily/$(date -u +%F).md"
+          if [ ! -s "$brief" ]; then
+            echo "::error::Expected briefing at $brief was not produced or is empty."
+            exit 1
+          fi
+
+      - name: Commit briefing
+        run: |
+          git config user.name "claude-daily"
+          git config user.email "claude-daily@users.noreply.github.com"
+          git add notes/daily/
+          if git diff --cached --quiet; then
+            echo "Briefing file unchanged from what's already committed; nothing to push."
+          else
+            git commit -m "Daily briefing $(date -u +%F)"
+            git push
+          fi
