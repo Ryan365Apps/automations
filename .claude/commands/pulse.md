@@ -16,3 +16,5 @@ Window: last **$ARGUMENTS** hours. If no argument, use **24**.
    - **Closed** — issues moved to Done/Cancelled in the window.
    - **Blocked** — issues newly marked blocked or with blocker labels.
 5. Keep it dense. One line per issue. No narrative.
+
+**Fallback:** if the Linear MCP is unavailable (e.g. CI without auth wired), do not fail. Emit a single line `Linear MCP unavailable — no pulse data this run.` and return. `/daily` relies on this so the briefing still renders in non-interactive runs.

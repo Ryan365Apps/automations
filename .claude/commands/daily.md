@@ -18,3 +18,8 @@ Today's date: read from the environment (current system date in YYYY-MM-DD).
 6. Print the path at the end. Do not post to Linear, Confluence, or GitHub — this briefing stays local/in-repo.
 
 If running non-interactively (e.g. GitHub Actions), do not prompt for confirmation; just produce the file.
+
+**Fallback rules — never fail the run, always produce a file:**
+- If the Linear MCP is unavailable, render `## What moved` and `## What's on me` with the single line `Linear MCP unavailable — wire auth to populate this section.` and continue.
+- If `~/.claude/projects/` is unavailable, omit the `## Unfinished from yesterday` section entirely.
+- If all data sources are unavailable, still write the file with the date heading and a short note explaining why it's empty. The briefing file must always exist so CI can detect real failures (empty/missing file) vs. degraded-but-working runs.

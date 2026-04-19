@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: daily-briefing-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   brief:
     runs-on: ubuntu-latest
@@ -16,6 +20,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run /daily via Claude Code
+        # NOTE: `@beta` is a floating tag. Before enabling the cron in anger,
+        # pin this to a reviewed commit SHA (or a versioned tag) to avoid
+        # upstream changes silently breaking or shifting behaviour.
         uses: anthropics/claude-code-base-action@beta
         with:
           prompt: /daily
@@ -38,13 +45,21 @@ jobs:
           #     }
           #   }
 
+      - name: Verify briefing was produced
+        run: |
+          brief="notes/daily/$(date -u +%F).md"
+          if [ ! -s "$brief" ]; then
+            echo "::error::Expected briefing at $brief was not produced or is empty."
+            exit 1
+          fi
+
       - name: Commit briefing
         run: |
           git config user.name "claude-daily"
           git config user.email "claude-daily@users.noreply.github.com"
           git add notes/daily/
           if git diff --cached --quiet; then
-            echo "No briefing changes to commit."
+            echo "Briefing file unchanged from what's already committed; nothing to push."
           else
             git commit -m "Daily briefing $(date -u +%F)"
             git push
